@@ -1,6 +1,6 @@
 # Create a VPC
 resource "aws_vpc" "main" {
-  cidr_block = "10.100.0.0/16"
+  cidr_block = var.vpc_cidr_block
 }
 
 data "aws_ami" "ubuntu" {
@@ -23,7 +23,7 @@ resource "random_pet" "name" {}
 
 resource "aws_instance" "web" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t3.micro"
+  instance_type = var.ec2_instance_type
 
   tags = {
     Name = random_pet.name.id
