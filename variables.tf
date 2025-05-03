@@ -15,3 +15,14 @@ variable "ec2_instance_type" {
   type        = string
   default     = "t3.micro"
 }
+
+variable "resource_tags" {
+  description = "Tags to set for all resources"
+  type        = map(string)
+  default     = {
+    project     = "hello-world",
+    managed = "terraform",
+    environment = "dev"
+  }
+}
+

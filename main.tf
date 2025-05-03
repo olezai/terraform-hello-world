@@ -1,6 +1,9 @@
 # Create a VPC
 resource "aws_vpc" "main" {
+
   cidr_block = var.vpc_cidr_block
+
+  tags = var.resource_tags
 }
 
 data "aws_ami" "ubuntu" {
@@ -25,7 +28,10 @@ resource "aws_instance" "web" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.ec2_instance_type
 
-  tags = {
-    Name = random_pet.name.id
-  }
+    tags = merge(
+    var.resource_tags,
+    {
+        Name = random_pet.name.id
+    }
+    )
 }
