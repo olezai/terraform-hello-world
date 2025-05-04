@@ -42,43 +42,67 @@ data "aws_ami" "ubuntu" {
 
 resource "random_pet" "name" {}
 
-resource "aws_security_group" "allow_tls" {
-  name        = "allow_tls"
-  description = "Allow TLS inbound traffic and all outbound traffic"
+resource "aws_security_group" "allow_http" {
+  name        = "allow_http"
+  description = "Allow HTTP inbound traffic and all outbound traffic"
   vpc_id      = aws_vpc.main.id
 
-  tags = {
-    Name = "allow_tls"
-  }
+  tags = var.resource_tags
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_tls_ipv4" {
-  security_group_id = aws_security_group.allow_tls.id
+resource "aws_vpc_security_group_ingress_rule" "allow_http_ipv4" {
+  security_group_id = aws_security_group.allow_http.id
   cidr_ipv4         = aws_vpc.main.cidr_block
-  from_port         = 443
+  from_port         = 80
   ip_protocol       = "tcp"
-  to_port           = 443
+  to_port           = 80
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_tls_ipv6" {
-  security_group_id = aws_security_group.allow_tls.id
-  cidr_ipv6         = aws_vpc.main.ipv6_cidr_block
-  from_port         = 443
-  ip_protocol       = "tcp"
-  to_port           = 443
-}
+# My VPC doesn't have IPv6
+# resource "aws_vpc_security_group_ingress_rule" "allow_http_ipv6" {
+#   security_group_id = aws_security_group.allow_http.id
+#   cidr_ipv6         = aws_vpc.main.ipv6_cidr_block
+#   from_port         = 80
+#   ip_protocol       = "tcp"
+#   to_port           = 80
+# }
 
 resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv4" {
-  security_group_id = aws_security_group.allow_tls.id
+  security_group_id = aws_security_group.allow_http.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1" # semantically equivalent to all ports
 }
 
-resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv6" {
-  security_group_id = aws_security_group.allow_tls.id
-  cidr_ipv6         = "::/0"
-  ip_protocol       = "-1" # semantically equivalent to all ports
+# resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv6" {
+#   security_group_id = aws_security_group.allow_http.id
+#   cidr_ipv6         = "::/0"
+#   ip_protocol       = "-1" # semantically equivalent to all ports
+# }
+
+resource "aws_security_group" "allow_ssh" {
+  name        = "allow_ssh"
+  description = "Allow SSH inbound traffic and all outbound traffic"
+  vpc_id      = aws_vpc.main.id
+
+  tags = var.resource_tags
 }
+
+resource "aws_vpc_security_group_ingress_rule" "allow_ssh_ipv4" {
+  security_group_id = aws_security_group.allow_ssh.id
+  cidr_ipv4         = aws_vpc.main.cidr_block
+  from_port         = 22
+  ip_protocol       = "tcp"
+  to_port           = 22
+}
+
+# My VPC doesn't have IPv6
+# resource "aws_vpc_security_group_ingress_rule" "allow_ssh_ipv6" {
+#   security_group_id = aws_security_group.allow_ssh.id
+#   cidr_ipv6         = aws_vpc.main.ipv6_cidr_block
+#   from_port         = 22
+#   ip_protocol       = "tcp"
+#   to_port           = 22
+# }
 
 resource "aws_instance" "web" {
   ami           = data.aws_ami.ubuntu.id
