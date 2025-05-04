@@ -117,6 +117,8 @@ resource "aws_instance" "web" {
 
   associate_public_ip_address = true
 
+  depends_on = [aws_internet_gateway.igw]
+
   tags = merge(
     var.resource_tags,
     {
