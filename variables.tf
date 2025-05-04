@@ -19,9 +19,9 @@ variable "ec2_instance_type" {
 variable "resource_tags" {
   description = "Tags to set for all resources"
   type        = map(string)
-  default     = {
+  default = {
     project     = "hello-world",
-    managed = "terraform",
+    managed     = "terraform",
     environment = "dev"
   }
 }
