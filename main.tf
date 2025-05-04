@@ -143,10 +143,14 @@ resource "aws_vpc_security_group_ingress_rule" "allow_icmp_ipv4" {
 }
 
 resource "aws_instance" "web" {
-  ami                    = data.aws_ami.ubuntu.id
-  instance_type          = var.ec2_instance_type
-  subnet_id              = aws_subnet.subnets["my_public_subnet1"].id
-  vpc_security_group_ids = aws_security_group[*].id
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.ec2_instance_type
+  subnet_id     = aws_subnet.subnets["my_public_subnet1"].id
+  vpc_security_group_ids = [
+    aws_security_group.allow_http.id,
+    aws_security_group.allow_ssh.id,
+    aws_security_group.allow_icmp.id,
+  ]
 
   associate_public_ip_address = true
 
