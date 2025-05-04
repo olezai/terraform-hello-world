@@ -47,6 +47,8 @@ resource "aws_instance" "web" {
   instance_type = var.ec2_instance_type
   subnet_id     = aws_subnet.subnets["my_public_subnet1"].id
 
+  associate_public_ip_address = true
+
   tags = merge(
     var.resource_tags,
     {
