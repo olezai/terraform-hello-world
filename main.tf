@@ -25,7 +25,7 @@ resource "aws_subnet" "subnets" {
 }
 
 resource "aws_route_table" "rt" {
-  vpc_id = aws_vpc.example.id
+  vpc_id = aws_vpc.main.id
 
   route {
     cidr_block = var.vpc_cidr_block
