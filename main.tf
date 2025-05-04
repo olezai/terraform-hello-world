@@ -40,6 +40,16 @@ resource "aws_route_table" "public-rt" {
   tags = var.resource_tags
 }
 
+resource "aws_route_table_association" "rta1" {
+  subnet_id      = aws_subnet.subnets["my_public_subnet1"].id
+  route_table_id = aws_route_table.public-rt.id
+}
+
+resource "aws_route_table_association" "rta2" {
+  subnet_id      = aws_subnet.subnets["my_public_subnet2"].id
+  route_table_id = aws_route_table.public-rt.id
+}
+
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
