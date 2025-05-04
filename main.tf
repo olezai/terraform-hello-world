@@ -24,11 +24,11 @@ resource "aws_subnet" "subnets" {
   tags = var.resource_tags
 }
 
-resource "aws_route_table" "rt" {
+resource "aws_route_table" "public-rt" {
   vpc_id = aws_vpc.main.id
 
   route {
-    cidr_block = var.vpc_cidr_block
+    cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
   }
 
