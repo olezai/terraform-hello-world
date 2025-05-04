@@ -164,6 +164,11 @@ resource "aws_instance" "web" {
 
   associate_public_ip_address = true
 
+  root_block_device {
+    volume_size = 1
+    volume_type = "gp2"
+  }
+
   depends_on = [aws_internet_gateway.igw]
 
   tags = merge(
