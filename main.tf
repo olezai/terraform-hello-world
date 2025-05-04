@@ -65,7 +65,7 @@ data "aws_ami" "ubuntu" {
 resource "random_pet" "name" {}
 
 resource "aws_security_group" "allow_http" {
-  name        = "allow_http"
+  name        = "allow-http"
   description = "Allow HTTP inbound traffic and all outbound traffic"
   vpc_id      = aws_vpc.main.id
 
@@ -102,7 +102,7 @@ resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv4" {
 # }
 
 resource "aws_security_group" "allow_ssh" {
-  name        = "allow_ssh"
+  name        = "allow-ssh"
   description = "Allow SSH inbound traffic and all outbound traffic"
   vpc_id      = aws_vpc.main.id
 
@@ -126,10 +126,27 @@ resource "aws_vpc_security_group_ingress_rule" "allow_ssh_ipv4" {
 #   to_port           = 22
 # }
 
+resource "aws_security_group" "allow_icmp" {
+  name        = "allow-icmp"
+  description = "Allow SSH inbound traffic and all outbound traffic"
+  vpc_id      = aws_vpc.main.id
+
+  tags = var.resource_tags
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_icmp_ipv4" {
+  security_group_id = aws_security_group.allow_icmp.id
+  cidr_ipv4         = aws_vpc.main.cidr_block
+  from_port         = -1
+  ip_protocol       = "icmp"
+  to_port           = -1
+}
+
 resource "aws_instance" "web" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = var.ec2_instance_type
-  subnet_id     = aws_subnet.subnets["my_public_subnet1"].id
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = var.ec2_instance_type
+  subnet_id              = aws_subnet.subnets["my_public_subnet1"].id
+  vpc_security_group_ids = [aws_security_group[*].id]
 
   associate_public_ip_address = true
 
