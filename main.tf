@@ -116,6 +116,11 @@ resource "aws_security_group" "web_sg" {
   tags = var.resource_tags
 }
 
+resource "aws_key_pair" "ssh_key" {
+  key_name   = "ssh-key"
+  public_key = file("~/.ssh/id_rsa.pub")
+}
+
 resource "aws_instance" "web" {
   ami                    = data.aws_ami.linux.id
   instance_type          = var.ec2_instance_type
@@ -124,6 +129,8 @@ resource "aws_instance" "web" {
 
   associate_public_ip_address = false # disable IPv4
   ipv6_address_count          = 1     # Assign one IPv6 address
+
+  key_name = aws_key_pair.ssh_key.key_name
 
   root_block_device {
     volume_size = 2
