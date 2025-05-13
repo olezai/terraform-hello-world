@@ -174,6 +174,15 @@ resource "aws_instance" "web" {
     volume_type = "gp2"
   }
 
+  user_data = <<-EOF
+              #!/bin/bash
+              yum update -y
+              yum install -y httpd
+              echo "Hello, World from Amazon Linux!" > /var/www/html/index.html
+              systemctl enable httpd
+              systemctl start httpd
+            EOF
+
   depends_on = [aws_internet_gateway.igw]
 
   tags = merge(
