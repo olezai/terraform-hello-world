@@ -30,8 +30,8 @@ resource "aws_route_table" "public-rt" {
   vpc_id = aws_vpc.main.id
 
   route {
-    ipv6_cidr_block        = "::/0"
-    egress_only_gateway_id = aws_internet_gateway.igw.id
+    ipv6_cidr_block = "::/0"
+    gateway_id      = aws_internet_gateway.igw.id
   }
 
   tags = var.resource_tags
