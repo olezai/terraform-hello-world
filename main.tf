@@ -31,7 +31,7 @@ resource "aws_route_table" "public-rt" {
 
   route {
     ipv6_cidr_block        = "::/0"
-    egress_only_gateway_id = aws_egress_only_internet_gateway.egw.id
+    egress_only_gateway_id = aws_internet_gateway.igw.id
   }
 
   tags = var.resource_tags
@@ -52,7 +52,7 @@ resource "aws_route_table_association" "rta2" {
   route_table_id = aws_route_table.public-rt.id
 }
 
-resource "aws_egress_only_internet_gateway" "egw" {
+resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
   tags   = var.resource_tags
 }
@@ -146,7 +146,7 @@ resource "aws_instance" "web" {
               systemctl start httpd
             EOF
 
-  depends_on = [aws_egress_only_internet_gateway.egw]
+  depends_on = [aws_internet_gateway.igw]
 
   tags = merge(
     var.resource_tags,
