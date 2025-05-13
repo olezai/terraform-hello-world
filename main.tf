@@ -9,17 +9,19 @@ locals {
 }
 
 resource "aws_vpc" "main" {
-
-  cidr_block = var.vpc_cidr_block
+  cidr_block                       = var.vpc_cidr_block
+  assign_generated_ipv6_cidr_block = true
 
   tags = var.resource_tags
 }
 
 resource "aws_subnet" "subnets" {
-  for_each          = local.subnets
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = each.value.cidr_block
-  availability_zone = "${var.aws_region}${each.value.az_suffix}"
+  for_each                        = local.subnets
+  vpc_id                          = aws_vpc.main.id
+  cidr_block                      = each.value.cidr_block
+  availability_zone               = "${var.aws_region}${each.value.az_suffix}"
+  ipv6_cidr_block                 = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, index(keys(local.subnets), each.key))
+  assign_ipv6_address_on_creation = true
 
   tags = var.resource_tags
 }
@@ -28,17 +30,17 @@ resource "aws_route_table" "public-rt" {
   vpc_id = aws_vpc.main.id
 
   route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
+    ipv6_cidr_block        = "::/0"
+    egress_only_gateway_id = aws_egress_only_internet_gateway.egw.id
   }
-
-  # route {
-  #   ipv6_cidr_block        = "::/0"
-  #   egress_only_gateway_id = aws_egress_only_internet_gateway.igw.id
-  # }
 
   tags = var.resource_tags
 }
+
+# route {
+#   ipv6_cidr_block        = "::/0"
+#   egress_only_gateway_id = aws_egress_only_internet_gateway.igw.id
+# }
 
 resource "aws_route_table_association" "rta1" {
   subnet_id      = aws_subnet.subnets["my_public_subnet1"].id
@@ -50,10 +52,9 @@ resource "aws_route_table_association" "rta2" {
   route_table_id = aws_route_table.public-rt.id
 }
 
-resource "aws_internet_gateway" "igw" {
+resource "aws_egress_only_internet_gateway" "egw" {
   vpc_id = aws_vpc.main.id
-
-  tags = var.resource_tags
+  tags   = var.resource_tags
 }
 
 data "aws_ami" "linux" {
@@ -84,32 +85,32 @@ resource "aws_security_group" "web_sg" {
   vpc_id = aws_vpc.main.id
 
   ingress {
-    from_port   = -1
-    to_port     = -1
-    protocol    = "icmp"
-    cidr_blocks = ["0.0.0.0/0"] # Allow from anywhere (or restrict as needed)
+    from_port        = -1
+    to_port          = -1
+    protocol         = "icmp"
+    ipv6_cidr_blocks = ["::/0"] # Allow from anywhere (or restrict as needed)
   }
 
   # Optional: also allow SSH/HTTP if needed
   ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   tags = var.resource_tags
@@ -121,7 +122,8 @@ resource "aws_instance" "web" {
   subnet_id              = aws_subnet.subnets["my_public_subnet1"].id
   vpc_security_group_ids = [aws_security_group.web_sg.id]
 
-  associate_public_ip_address = true
+  associate_public_ip_address = false # disable IPv4
+  ipv6_address_count          = 1     # Assign one IPv6 address
 
   root_block_device {
     volume_size = 2
@@ -137,7 +139,7 @@ resource "aws_instance" "web" {
               systemctl start httpd
             EOF
 
-  depends_on = [aws_internet_gateway.igw]
+  depends_on = [aws_egress_only_internet_gateway.egw]
 
   tags = merge(
     var.resource_tags,
